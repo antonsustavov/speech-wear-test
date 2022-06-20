@@ -7,6 +7,7 @@ import android.content.ComponentName
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -14,7 +15,7 @@ import android.util.Log
 import androidx.lifecycle.LifecycleService
 import java.util.*
 
-class SpeechListener : LifecycleService(), RecognitionListener {
+class SpeechListener : Service(), RecognitionListener {
     private lateinit var speechRecognizer: SpeechRecognizer
     private var isActivated: Boolean = false
     private val activationKeyword: String = "help"
@@ -24,12 +25,12 @@ class SpeechListener : LifecycleService(), RecognitionListener {
         Log.i(">>>>>> START", ">>>>>>>>>>>>>>>>>>>>> START")
         Log.i(">>>>>> START", SpeechRecognizer.isRecognitionAvailable(this).toString())
 
-//        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(
-//            this,
-//            ComponentName.unflattenFromString("com.google.android.googlequicksearchbox/com.google.android.voicesearch.serviceapi.GoogleRecognitionService")
-//        )
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(
+            this,
+            ComponentName.unflattenFromString("com.google.android.googlequicksearchbox/com.google.android.voicesearch.serviceapi.GoogleRecognitionService")
+        )
 //        speechRecognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(this)
-        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
+//        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
         speechRecognizer.setRecognitionListener(this)
 
         val voice = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
@@ -157,5 +158,10 @@ class SpeechListener : LifecycleService(), RecognitionListener {
 //        speechRecognizer.destroy()
         super.onDestroy()
         speechRecognizer.destroy()
+    }
+
+    override fun onBind(intent: Intent?): IBinder? {
+        Log.i(">>>>>>>>> BIND TEXT ", intent.toString())
+        return null;
     }
 }
