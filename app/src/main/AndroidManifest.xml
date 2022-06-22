@@ -2,11 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.sustav.mytest.view.speechweartest">
 
-    <queries>
-        <intent>
-            <action android:name="android.speech.RecognitionService" />
-        </intent>
-    </queries>
+<!--    <queries>-->
+<!--        <intent>-->
+<!--            <action android:name="android.speech.RecognitionService" />-->
+<!--        </intent>-->
+<!--    </queries>-->
 
     <queries>
         <package android:name="com.google.android.googlequicksearchbox"/>

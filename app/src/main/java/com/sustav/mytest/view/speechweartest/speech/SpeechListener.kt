@@ -1,17 +1,22 @@
 package com.tamara.care.watch.speech
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.ComponentName
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.os.IBinder
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
+import androidx.core.app.ActivityCompat.requestPermissions
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import java.util.*
 
@@ -22,33 +27,53 @@ class SpeechListener : Service(), RecognitionListener {
     private val foregroundId: Int = 1000001
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+//        if (ContextCompat.checkSelfPermission(this, "android.permission.RECORD_AUDIO") != PackageManager.PERMISSION_GRANTED) {
+//            requestPermissions(requiredA, arrayOf(Manifest.permission.RECORD_AUDIO), 9379995)
+//        }
+
         Log.i(">>>>>> START", ">>>>>>>>>>>>>>>>>>>>> START")
         Log.i(">>>>>> START", SpeechRecognizer.isRecognitionAvailable(this).toString())
 
-        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(
-            this,
-            ComponentName.unflattenFromString("com.google.android.googlequicksearchbox/com.google.android.voicesearch.serviceapi.GoogleRecognitionService")
-        )
+//        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(
+//            this,
+//            ComponentName.unflattenFromString("com.google.android.googlequicksearchbox/com.google.android.voicesearch.serviceapi.GoogleRecognitionService")
+//        )
 //        speechRecognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(this)
-//        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
         speechRecognizer.setRecognitionListener(this)
 
-        val voice = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-        voice.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
-        voice.putExtra(
-            RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-        )
-        voice.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
-        voice.component = ComponentName.unflattenFromString("com.google.android.googlequicksearchbox/com.google.android.voicesearch.serviceapi.GoogleRecognitionService")
+        startListening()
+
+//        val voice = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+//        voice.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+//        voice.putExtra(
+//            RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+//            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+//        )
+//        voice.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+//        voice.component = ComponentName.unflattenFromString("com.google.android.googlequicksearchbox/com.google.android.voicesearch.serviceapi.GoogleRecognitionService")
 //        voice.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 10)
 //        startActivityForResult(voice, 1111)
 
-        speechRecognizer.startListening(voice)
+//        speechRecognizer.startListening(voice)
 
         startForeground(this)
 
         return super.onStartCommand(intent, flags, startId)
+    }
+
+    private fun startListening() {
+        val voice = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+        voice.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+        voice.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        speechRecognizer.startListening(voice)
+        object : CountDownTimer(10, 10) {
+            override fun onTick(millisUntilFinished: Long) {}
+
+            override fun onFinish() {
+                speechRecognizer.cancel()
+            }
+        }.start()
     }
 
     override fun onCreate() {
@@ -102,55 +127,47 @@ class SpeechListener : Service(), RecognitionListener {
     }
 
     override fun onReadyForSpeech(params: Bundle?) {
-        TODO("Not yet implemented")
+        Log.i(">>>> READY FOR SPEECH ", params.toString())
     }
 
     override fun onBeginningOfSpeech() {
-        TODO("Not yet implemented")
+        Log.i(">>>>>> ON BEGINNING ", "fsdfsdfdsf")
     }
 
     override fun onRmsChanged(rmsdB: Float) {
-        TODO("Not yet implemented")
+        Log.i(">>>>> RMSDB", rmsdB.toString())
     }
 
     override fun onBufferReceived(buffer: ByteArray?) {
-        TODO("Not yet implemented")
+        Log.i(">>>>> ON BUFFER", buffer.toString())
     }
 
     override fun onEndOfSpeech() {
-        TODO("Not yet implemented")
+        Log.i(">>>>> ON END SPEECH", "END")
     }
 
     override fun onError(error: Int) {
-        TODO("Not yet implemented")
+        Log.i(">>>>>>>>>> ERROR", error.toString())
+        speechRecognizer.cancel()
+        startListening()
     }
 
     override fun onResults(results: Bundle?) {
         val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-//        val scores = results?.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES)
-        Log.i(">>>>>>>>> SPOKEN TEXT ", matches!![0])
-//        if (matches != null) {
-//            if (isActivated) {
-//                isActivated = false
-////                stopRecognition()
-//                Log.i("Matches", matches.toString())
-//            } else {
-//                matches.firstOrNull { it.contains(other = activationKeyword, ignoreCase = true) }
-//                    ?.let {
-//                        isActivated = true
-//                    }
-//                Log.i("Matches", matches.toString())
-////                startRecognition()
-//            }
-//        }
+        if (matches != null) {
+           Log.i(">>>>>>>>> SPOKEN TEXT ", matches!![0])
+        } else {
+            Log.i(">>>>>>>>> SPOKEN TEXT ", "SPEECH Result null")
+        }
+        startListening()
     }
 
     override fun onPartialResults(partialResults: Bundle?) {
-        TODO("Not yet implemented")
+        Log.i(">>>>> ON PARTITONAL", partialResults.toString())
     }
 
     override fun onEvent(eventType: Int, params: Bundle?) {
-        TODO("Not yet implemented")
+        Log.i(">>>>> ON EVENT", eventType.toString() + params.toString())
     }
 
     override fun onDestroy() {
